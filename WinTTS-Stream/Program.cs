@@ -94,7 +94,11 @@ class Program
 
                             // Use an event to wait for the audio to finish playing
                             bool playbackFinished = false;
-                            soundOut.Stopped += (s, e) => playbackFinished = true;
+                            soundOut.Stopped += (s, e) =>
+                            {
+                                playbackFinished = true;
+                                Console.WriteLine("TOKEN_PLAYBACK_FINISHED");
+                            };
 
                             while (!playbackFinished)
                             {
