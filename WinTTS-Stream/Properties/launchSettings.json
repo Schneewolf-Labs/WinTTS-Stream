@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WinTTS-Stream": {
+      "commandName": "Project",
+      "commandLineArgs": "1 1"
+    }
+  }
+}
