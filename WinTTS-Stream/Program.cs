@@ -75,37 +75,45 @@ class Program
         {
             if (ttsQueue.TryDequeue(out string token))
             {
-                using (MemoryStream memoryStream = new MemoryStream())
+                try
                 {
-                    synthesizer.SetOutputToWaveStream(memoryStream);
-                    synthesizer.Speak(token);
-
-                    // Reset memory stream position
-                    memoryStream.Position = 0;
-
-                    // Play the memory stream using CSCore
-                    using (var waveSource = new WaveFileReader(memoryStream))
+                    using (MemoryStream memoryStream = new MemoryStream())
                     {
-                        using (var soundOut = new WasapiOut())
+                        synthesizer.SetOutputToWaveStream(memoryStream);
+                        synthesizer.Speak(token);
+
+                        // Reset memory stream position
+                        memoryStream.Position = 0;
+
+                        // Play the memory stream using CSCore
+                        using (var waveSource = new WaveFileReader(memoryStream))
                         {
-                            soundOut.Device = new MMDeviceEnumerator().EnumAudioEndpoints(DataFlow.Render, DeviceState.Active)[outputDevice];
-                            soundOut.Initialize(waveSource);
-                            soundOut.Play();
-
-                            // Use an event to wait for the audio to finish playing
-                            bool playbackFinished = false;
-                            soundOut.Stopped += (s, e) =>
+                            using (var soundOut = new WasapiOut())
                             {
-                                playbackFinished = true;
-                                Console.WriteLine("TOKEN_PLAYBACK_FINISHED");
-                            };
+                                soundOut.Device = new MMDeviceEnumerator().EnumAudioEndpoints(DataFlow.Render, DeviceState.Active)[outputDevice];
+                                soundOut.Initialize(waveSource);
+                                soundOut.Play();
 
-                            while (!playbackFinished)
-                            {
-                                System.Threading.Thread.Sleep(100);
+                                // Use an event to wait for the audio to finish playing
+                                bool playbackFinished = false;
+                                soundOut.Stopped += (s, e) =>
+                                {
+                                    playbackFinished = true;
+                                    Console.WriteLine("TOKEN_PLAYBACK_FINISHED");
+                                };
+
+                                while (!playbackFinished)
+                                {
+                                    System.Threading.Thread.Sleep(100);
+                                }
                             }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Exception: {ex.Message}");
+                    Console.WriteLine("TOKEN_PLAYBACK_FINISHED");
                 }
             }
             else
